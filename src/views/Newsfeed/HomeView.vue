@@ -43,8 +43,7 @@
     @show-comments="showComments" 
     @add-comments="addComments" 
     @remove-comments="removeComments" 
-    @edit-comments="editComments" 
-    @save-data="saveData"/>
+    @edit-comments="editComments"/>
 </body>
 </template>
 <script lang="ts">
@@ -52,12 +51,12 @@ import { ref } from '@vue/reactivity';
 import { defineComponent } from '@vue/runtime-core';
 import Posts from '@/types/Posts'
 import PostsList from '@/components/PostsList.vue'
-import { isPromise } from '@vue/shared';
 
 export default defineComponent({
   name: 'HomeView',
   components: {PostsList},
   setup() {
+
     const DATE = ref<Date>();
     const edit = ref(false);
     const editindex = ref<number>(0);
@@ -68,29 +67,15 @@ export default defineComponent({
     const showModal = ref(false);
     const strdate = ref<string>();
     const titleInput = ref<string>("");
-    const error1= ref("")
-
-    const saveData = () =>
-    {
-        fetch('http://localhost:3000/posts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(posts.value)
-        })
-    }
 
     const addComments = (index:number, commentInput: string) =>
     {
       posts.value[index].comments.unshift(commentInput)
-      saveData()
     }
 
     const editComments = (index:number, editcomindex: number, commentEdit: string) =>
     {
       posts.value[index].comments.splice(editcomindex, 1, commentEdit)
-      saveData()
     }
 
     const editPost = (index:number) =>
@@ -101,7 +86,6 @@ export default defineComponent({
       titleInput.value = posts.value[index].title
       messageInput.value = posts.value[index].message
       editindex.value = index
-      saveData()
     }
     
     const heartClicked = (index: number) =>
@@ -116,26 +100,7 @@ export default defineComponent({
         posts.value[index].heart--
         posts.value[index].liked = 0;
       }
-    saveData()
     }
-
-    const load = async() => {
-      try {
-        let data = await fetch('http://localhost:3000/posts')
-        error1.value = await data.json()
-        console.log(JSON.stringify(error1.value))
-        if(!data.ok || JSON.stringify(error1.value) == "{}"){
-          throw Error('no data available')
-        }
-        let data1 = await fetch('http://localhost:3000/posts')
-        posts.value = await data1.json()
-      }
-      catch(err: any) {
-        error.value = err.message
-        console.log(error.value)
-      }
-    }
-    load()
 
      const publishPost = () =>
     {
@@ -143,12 +108,14 @@ export default defineComponent({
       strdate.value = DATE.value.toDateString()
       if(DATE.value.getHours() >= 12)
       {
-        strdate.value += " " + (DATE.value.getHours()-12) + ":" + DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
+        strdate.value += " " + (DATE.value.getHours()-12) + ":" + 
+        DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
         "PM"
       }
       else
       {
-        strdate.value += " " + DATE.value.getHours() + ":" + DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
+        strdate.value += " " + DATE.value.getHours() + ":" + 
+        DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
         "AM"
       }
       posts.value.unshift({
@@ -171,19 +138,16 @@ export default defineComponent({
       }
       showModal.value = !showModal.value;
       edit.value = false
-      saveData()
     }
 
     const removeComments = (index:number, comindex: number) =>
     {
       posts.value[index].comments.splice(comindex, 1)
-      saveData()
     }
 
     const removePost = (index:number) =>
     {
       posts.value.splice(index,1)
-      saveData()
     }
 
     const showComments = (index:number) =>
@@ -196,7 +160,6 @@ export default defineComponent({
       {
         posts.value[index].showcoms = 0
       }
-      saveData()
     }
 
     const toggleModal = () =>
@@ -207,7 +170,9 @@ export default defineComponent({
       messageInput.value = ""
     }
 
-    return{posts, toggleModal, showModal, publishPost, nameInput, titleInput,messageInput, heartClicked, removePost, editPost, edit, showComments, addComments, removeComments, editComments, saveData}
+    return{posts, toggleModal, showModal, publishPost, nameInput, 
+    titleInput,messageInput, heartClicked, removePost, editPost, 
+    edit, showComments, addComments, removeComments, editComments}
   }
 })
 </script>

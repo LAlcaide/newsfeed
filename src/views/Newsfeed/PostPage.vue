@@ -85,13 +85,11 @@ export default defineComponent({
     const addComments = (index:number, commentInput: string) =>
     {
       post.value[index].comments.unshift(commentInput)
-      saveData()
     }
     
     const editComments = (index:number, editcomindex: number, commentEdit: string) =>
     {
       post.value[index].comments.splice(editcomindex, 1, commentEdit)
-      saveData()
     }
 
     const editPost = (index:number) =>
@@ -115,26 +113,7 @@ export default defineComponent({
         post.value[index].heart--
         post.value[index].liked = 0;
       }
-    saveData()
     }
-
-    const load = async() => 
-    {
-      try 
-      {
-        let data = await fetch('http://localhost:3000/posts')
-        if(!data.ok)
-        {
-          throw Error('no data available')
-        }
-        post.value = await data.json()
-      }
-      catch(err: any) {
-        error.value = err.message
-        console.log(error.value)
-      }
-    }
-    load()
 
     const publishPost = () =>
     {
@@ -167,30 +146,16 @@ export default defineComponent({
       post.value.splice(editindex.value+1, 1)
       showModal.value = !showModal.value;
       userData.value = '0'
-      saveData()
     }
 
     const removeComments = (index:number, comindex: number) =>
     {
       post.value[index].comments.splice(comindex, 1)
-      saveData()
     }
 
     const removePost = (index:number) =>
     {
       post.value.splice(index,1)
-      saveData()
-    }
-
-    const saveData = () =>
-    {
-        fetch('http://localhost:3000/posts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(post.value)
-        })
     }
 
     const toggleModal = () =>
@@ -200,7 +165,9 @@ export default defineComponent({
       titleInput.value = ""
       messageInput.value = ""
     }
-    return{post, showModal, publishPost, nameInput, titleInput,messageInput, heartClicked, removePost, editPost, addComments, removeComments, editComments, saveData, toggleModal, userData}
+    return{post, showModal, publishPost, nameInput, titleInput,
+    messageInput, heartClicked, removePost, editPost, addComments, 
+    removeComments, editComments, toggleModal, userData}
   }
 })
 </script>
