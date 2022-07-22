@@ -15,19 +15,24 @@
         <div class="u-form u-form-1">
           <form action="#" autocomplete="off" method="POST" class="u-clearfix u-form-spacing-19 u-form-vertical u-inner-form" style="padding: 0px;" source="email" name="form">
             <div class="u-form-group u-form-name u-form-group-1">
-              <input type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+              <input v-if="!errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+              <input v-if="errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
             </div>
             <div class="u-form-group u-form-group-2">
-              <input type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+              <input v-if="!errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+              <input  v-if="errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
             </div>
             <div class="u-form-group u-form-message u-form-group-3">
-              <textarea placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5"></textarea>
+              <textarea v-if="!errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5"></textarea>
+              <textarea  v-if="errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;"></textarea>
             </div>
             <div class="u-align-center u-form-group u-form-submit u-form-group-4">
               <p @click="publishPost" class="u-btn u-btn-submit u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1">Publish<br>
               </p>
             </div>
           </form>
+          <div v-if="errorpost[0] || errorpost[1] || errorpost[2]"><br><br><br><div class="u-form-send-error u-form-send-message"> Unable to publish your post. Please fix errors then try again. </div></div>
+          <div v-if="nochanges"><br><br><br><div class="u-form-send-error u-form-send-message"> No changes detected. Please make some changes to publish. </div></div>
         </div>
       </div><button @click="toggleModal" class="u-dialog-close-button u-icon u-text-grey-50 u-icon-1">
       <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 413.348 413.348" style=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#svg-1ce9"></use></svg>
@@ -60,9 +65,11 @@ export default defineComponent({
     const DATE = ref<Date>();
     const edit = ref(false);
     const editindex = ref<number>(0);
-    const error = ref(null)
+    const emptycomment = ref<boolean>(false)
+    const errorpost = ref<boolean[]>([false, false, false])
     const messageInput = ref<string>("");
     const nameInput = ref<string>("");
+    const nochanges = ref<boolean>(false)
     const posts = ref<Posts[]>([])
     const showModal = ref(false);
     const strdate = ref<string>();
@@ -104,40 +111,80 @@ export default defineComponent({
 
      const publishPost = () =>
     {
-      DATE.value = new Date()
-      strdate.value = DATE.value.toDateString()
-      if(DATE.value.getHours() >= 12)
+      if(nameInput.value.trim() == '')
       {
-        strdate.value += " " + (DATE.value.getHours()-12) + ":" + 
-        DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
-        "PM"
+        errorpost.value[0] = true
       }
       else
       {
-        strdate.value += " " + DATE.value.getHours() + ":" + 
-        DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
-        "AM"
+        errorpost.value[0] = false
       }
-      posts.value.unshift({
-      author: nameInput.value,
-      title: titleInput.value,
-      message: messageInput.value,
-      heart: 0,
-      liked: 0,
-      date: strdate.value,
-      showcoms: 0,
-      comments: []
-      })
+      if(titleInput.value.trim() == '')
+      {
+        errorpost.value[1] = true
+      }
+      else
+      {
+        errorpost.value[1] = false
+      }
+      if(messageInput.value.trim() == '')
+      {
+        errorpost.value[2] = true
+      }
+      else
+      {
+        errorpost.value[2] = false
+      }
       if(edit.value)
       {
-        posts.value[0].heart = posts.value[editindex.value+1].heart
-        posts.value[0].liked = posts.value[editindex.value+1].liked
-        posts.value[0].showcoms = posts.value[editindex.value+1].showcoms
-        posts.value[0].comments = posts.value[editindex.value+1].comments
-        posts.value.splice(editindex.value+1, 1)
+        if(nameInput.value == posts.value[editindex.value].author && 
+        titleInput.value == posts.value[editindex.value].title && 
+        messageInput.value == posts.value[editindex.value].message)
+        {
+          nochanges.value = true
+        }
+        else
+        {
+          nochanges.value = false
+        }
       }
-      showModal.value = !showModal.value;
-      edit.value = false
+      if(nameInput.value.trim() != '' && titleInput.value.trim() != '' && messageInput.value.trim() != '' && !nochanges.value)
+      {
+        DATE.value = new Date()
+        strdate.value = DATE.value.toDateString()
+        if(DATE.value.getHours() >= 12)
+        {
+          strdate.value += " " + (DATE.value.getHours()-12) + ":" + 
+          DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
+          "PM"
+        }
+        else
+        {
+          strdate.value += " " + DATE.value.getHours() + ":" + 
+          DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " +
+          "AM"
+        }
+        posts.value.unshift({
+        author: nameInput.value,
+        title: titleInput.value,
+        message: messageInput.value,
+        heart: 0,
+        liked: 0,
+        date: strdate.value,
+        showcoms: 0,
+        comments: []
+        })
+        if(edit.value)
+        {
+          posts.value[0].heart = posts.value[editindex.value+1].heart
+          posts.value[0].liked = posts.value[editindex.value+1].liked
+          posts.value[0].showcoms = posts.value[editindex.value+1].showcoms
+          posts.value[0].comments = posts.value[editindex.value+1].comments
+          posts.value.splice(editindex.value+1, 1)
+        }
+        showModal.value = !showModal.value
+        edit.value = false
+      }
     }
 
     const removeComments = (index:number, comindex: number) =>
@@ -168,11 +215,16 @@ export default defineComponent({
       nameInput.value = ""
       titleInput.value = ""
       messageInput.value = ""
+      errorpost.value[0] = false
+      errorpost.value[1] = false
+      errorpost.value[2] = false
+      nochanges.value = false
     }
 
     return{posts, toggleModal, showModal, publishPost, nameInput, 
     titleInput,messageInput, heartClicked, removePost, editPost, 
-    edit, showComments, addComments, removeComments, editComments}
+    edit, showComments, addComments, removeComments, editComments, 
+    errorpost, nochanges}
   }
 })
 </script>
