@@ -13,19 +13,24 @@
           <div class="u-form u-form-1">
             <form action="#" autocomplete="off" method="POST" class="u-clearfix u-form-spacing-19 u-form-vertical u-inner-form" style="padding: 0px;" source="email" name="form">
               <div class="u-form-group u-form-name u-form-group-1">
-                <input type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+                <input v-if="!errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+                <input v-if="errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
               </div>
               <div class="u-form-group u-form-group-2">
-                <input type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+                <input v-if="!errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
+                <input  v-if="errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
               </div>
               <div class="u-form-group u-form-message u-form-group-3">
-                <textarea placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5"></textarea>
+                <textarea v-if="!errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5"></textarea>
+                <textarea  v-if="errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;"></textarea>
               </div>
               <div class="u-align-center u-form-group u-form-submit u-form-group-4">
                 <p @click="publishPost" class="u-btn u-btn-submit u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1">Publish<br>
                 </p>
               </div>
             </form>
+            <div v-if="errorpost[0] || errorpost[1] || errorpost[2]"><br><br><br><div class="u-form-send-error u-form-send-message"> Unable to publish your post. Please fix errors then try again. </div></div>
+            <div v-if="nochanges"><br><br><br><div class="u-form-send-error u-form-send-message"> No changes detected. Please make some changes to publish. </div></div>
           </div>
         </div><button @click="toggleModal" class="u-dialog-close-button u-icon u-text-grey-50 u-icon-1">
         <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 413.348 413.348" style=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#svg-1ce9"></use></svg>
@@ -47,6 +52,7 @@
                   <span class="u-meta-date u-meta-icon"><!--blog_post_metadata_date_content-->{{postt.author}} | {{postt.date}}<!--/blog_post_metadata_date_content--></span><!--/blog_post_metadata_date-->
                 </div><!--/blog_post_metadata--><span @click="removePost(postindex)" class="u-custom-color-1 u-file-icon u-hover-feature u-icon u-icon-circle u-text-white u-icon-1"><img src="@/assets/1665612.png" alt=""></span><span @click="editPost(postindex)" class="u-file-icon u-hover-feature u-icon u-icon-rectangle u-icon-2"><img src="@/assets/1159633.png" alt=""></span><!--blog_post_content-->
                 <div class="u-blog-control u-post-content u-text u-text-2"><!--blog_post_content_content-->{{postt.message}}<!--/blog_post_content_content--></div><!--/blog_post_content--><span class="u-border-2 u-border-black u-file-icon u-hover-feature u-icon u-icon-circle u-text-black u-icon-3"><img src="@/assets/1450338.png" alt=""></span><span @click="heartClicked(postindex)" class="u-border-2 u-border-black u-file-icon u-hover-feature u-icon u-icon-circle u-text-black u-icon-4"><img src="@/assets/833300.png" alt=""></span><span v-if="postt.liked == 1" @click="heartClicked(postindex)" class="u-border-2 u-border-black u-file-icon u-icon u-icon-circle u-palette-2-base u-text-black u-icon-5"><img src="@/assets/833300.png" alt=""></span><!--blog_post_readmore-->
+                <router-link :to="{name: 'Home', params: {poster: JSON.stringify(post)}}" class="u-blog-control u-btn u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1"><!--blog_post_readmore_content--><!--options_json--><!--{"content":"","defaultValue":"Read More"}--><!--/options_json-->&larr; Return<!--/blog_post_readmore_content--></router-link><!--/blog_post_readmore--><router-view />
                 <p class="u-align-center u-text u-text-3">{{postt.heart}}</p>
                 <p class="u-align-center u-text u-text-4">{{postt.comments.length}}</p>
               </div>
@@ -61,27 +67,32 @@
 </body>
 </template>
 <script lang="ts">
-import { defineComponent, ref} from 'vue'
+import { defineComponent, PropType, ref, onMounted} from 'vue'
 import Posts from '@/types/Posts';
 import Comments from '@/components/Comments.vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 export default defineComponent({
   components: {Comments},
-  setup()
+  props: ["name"],
+  setup(props)
   {
     const DATE = ref<Date>();
     const editindex = ref<number>(0);
-    const error = ref("")
+    const errorpost = ref<boolean[]>([false, false, false])
     const messageInput = ref<string>("");
     const nameInput = ref<string>("");
+    const nochanges = ref<boolean>(false)
     const post = ref<Posts[]>([]);
     const route = useRoute()
+    const router = useRouter()
     const showModal = ref(false);
     const strdate = ref<string>();
     const titleInput = ref<string>("");
     const userData = ref<string>();
-    userData.value = route.params.index.toString()
-    
+    post.value =JSON.parse(props.name)
+    console.log(post.value)
+    userData.value = route.params.index.toString() 
+
     const addComments = (index:number, commentInput: string) =>
     {
       post.value[index].comments.unshift(commentInput)
@@ -117,35 +128,72 @@ export default defineComponent({
 
     const publishPost = () =>
     {
-      DATE.value = new Date()
-      strdate.value = DATE.value.toDateString()
-      if(DATE.value.getHours() >= 12)
+      if(nameInput.value.trim() == '')
       {
-        strdate.value += " " + (DATE.value.getHours()-12) + ":" + 
-        DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " + "PM"
+        errorpost.value[0] = true
       }
       else
       {
-        strdate.value += " " + DATE.value.getHours() + ":" + 
-        DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " + "AM"
+        errorpost.value[0] = false
       }
-      post.value.unshift({
-        author: nameInput.value,
-        title: titleInput.value,
-        message: messageInput.value,
-        heart: 0,
-        liked: 0,
-        date: strdate.value,
-        showcoms: 0,
-        comments: []
-      })
-      post.value[0].heart = post.value[editindex.value+1].heart
-      post.value[0].liked = post.value[editindex.value+1].liked
-      post.value[0].showcoms = post.value[editindex.value+1].showcoms
-      post.value[0].comments = post.value[editindex.value+1].comments
-      post.value.splice(editindex.value+1, 1)
-      showModal.value = !showModal.value;
-      userData.value = '0'
+      if(titleInput.value.trim() == '')
+      {
+        errorpost.value[1] = true
+      }
+      else
+      {
+        errorpost.value[1] = false
+      }
+      if(messageInput.value.trim() == '')
+      {
+        errorpost.value[2] = true
+      }
+      else
+      {
+        errorpost.value[2] = false
+      }
+       if(nameInput.value == post.value[editindex.value].author && 
+        titleInput.value == post.value[editindex.value].title && 
+        messageInput.value == post.value[editindex.value].message)
+        {
+          nochanges.value = true
+        }
+        else
+        {
+          nochanges.value = false
+        }
+      if(nameInput.value.trim() != '' && titleInput.value.trim() != '' && messageInput.value.trim() != '' && !nochanges.value)
+      {
+         DATE.value = new Date()
+        strdate.value = DATE.value.toDateString()
+        if(DATE.value.getHours() >= 12)
+        {
+          strdate.value += " " + (DATE.value.getHours()-12) + ":" + 
+          DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " + "PM"
+        }
+        else
+        {
+          strdate.value += " " + DATE.value.getHours() + ":" + 
+          DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " + "AM"
+        }
+        post.value.unshift({
+          author: nameInput.value,
+          title: titleInput.value,
+          message: messageInput.value,
+          heart: 0,
+          liked: 0,
+          date: strdate.value,
+          showcoms: 0,
+          comments: []
+        })
+        post.value[0].heart = post.value[editindex.value+1].heart
+        post.value[0].liked = post.value[editindex.value+1].liked
+        post.value[0].showcoms = post.value[editindex.value+1].showcoms
+        post.value[0].comments = post.value[editindex.value+1].comments
+        post.value.splice(editindex.value+1, 1)
+        showModal.value = !showModal.value;
+        userData.value = '0'
+      }
     }
 
     const removeComments = (index:number, comindex: number) =>
@@ -167,7 +215,8 @@ export default defineComponent({
     }
     return{post, showModal, publishPost, nameInput, titleInput,
     messageInput, heartClicked, removePost, editPost, addComments, 
-    removeComments, editComments, toggleModal, userData}
+    removeComments, editComments, toggleModal, userData, errorpost, 
+    nochanges}
   }
 })
 </script>

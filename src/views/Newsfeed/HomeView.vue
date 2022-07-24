@@ -56,12 +56,17 @@ import { ref } from '@vue/reactivity';
 import { defineComponent } from '@vue/runtime-core';
 import Posts from '@/types/Posts'
 import PostsList from '@/components/PostsList.vue'
+import { useRoute, useRouter } from 'vue-router';
+import { watch } from 'vue';
 
 export default defineComponent({
   name: 'HomeView',
   components: {PostsList},
-  setup() {
+  props: ["poster"],
+  setup(props) {
 
+    const route = useRoute()
+    const router = useRouter()
     const DATE = ref<Date>();
     const edit = ref(false);
     const editindex = ref<number>(0);
@@ -74,7 +79,15 @@ export default defineComponent({
     const showModal = ref(false);
     const strdate = ref<string>();
     const titleInput = ref<string>("");
-
+       try
+      {
+        posts.value = JSON.parse(props.poster)
+        console.log(posts.value)
+      }
+      catch(err)
+      {
+        console.log(err)
+      }
     const addComments = (index:number, commentInput: string) =>
     {
       posts.value[index].comments.unshift(commentInput)

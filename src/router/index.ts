@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/Newsfeed/HomeView.vue'
-import Intro from '../views/WelcomePage.vue'
-import PostPage from '../views/Newsfeed/PostPage.vue'
+import HomeView from '@/views/Newsfeed/HomeView.vue'
+import Intro from '@/views/WelcomePage.vue'
+import PostPage from '@/views/Newsfeed/PostPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -12,7 +12,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/Home',
     name: 'Home',
-    component: HomeView
+    component: HomeView,
+    props: true
   },
   {
     path: '/Home/:index',
