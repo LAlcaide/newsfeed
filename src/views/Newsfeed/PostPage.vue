@@ -52,7 +52,7 @@
                   <span class="u-meta-date u-meta-icon"><!--blog_post_metadata_date_content-->{{postt.author}} | {{postt.date}}<!--/blog_post_metadata_date_content--></span><!--/blog_post_metadata_date-->
                 </div><!--/blog_post_metadata--><span @click="removePost(postindex)" class="u-custom-color-1 u-file-icon u-hover-feature u-icon u-icon-circle u-text-white u-icon-1"><img src="@/assets/1665612.png" alt=""></span><span @click="editPost(postindex)" class="u-file-icon u-hover-feature u-icon u-icon-rectangle u-icon-2"><img src="@/assets/1159633.png" alt=""></span><!--blog_post_content-->
                 <div class="u-blog-control u-post-content u-text u-text-2"><!--blog_post_content_content-->{{postt.message}}<!--/blog_post_content_content--></div><!--/blog_post_content--><span class="u-border-2 u-border-black u-file-icon u-hover-feature u-icon u-icon-circle u-text-black u-icon-3"><img src="@/assets/1450338.png" alt=""></span><span @click="heartClicked(postindex)" class="u-border-2 u-border-black u-file-icon u-hover-feature u-icon u-icon-circle u-text-black u-icon-4"><img src="@/assets/833300.png" alt=""></span><span v-if="postt.liked == 1" @click="heartClicked(postindex)" class="u-border-2 u-border-black u-file-icon u-icon u-icon-circle u-palette-2-base u-text-black u-icon-5"><img src="@/assets/833300.png" alt=""></span><!--blog_post_readmore-->
-                <router-link :to="{name: 'Home', params: {poster: JSON.stringify(post)}}" class="u-blog-control u-btn u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1"><!--blog_post_readmore_content--><!--options_json--><!--{"content":"","defaultValue":"Read More"}--><!--/options_json-->&larr; Return<!--/blog_post_readmore_content--></router-link><!--/blog_post_readmore--><router-view />
+                <router-link :to="{name: 'Home', params: {post: JSON.stringify(post)}}" class="u-blog-control u-btn u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1"><!--blog_post_readmore_content--><!--options_json--><!--{"content":"","defaultValue":"Read More"}--><!--/options_json-->&larr; Return<!--/blog_post_readmore_content--></router-link><!--/blog_post_readmore--><router-view />
                 <p class="u-align-center u-text u-text-3">{{postt.heart}}</p>
                 <p class="u-align-center u-text u-text-4">{{postt.comments.length}}</p>
               </div>
@@ -73,7 +73,7 @@ import Comments from '@/components/Comments.vue';
 import { useRoute, useRouter } from 'vue-router';
 export default defineComponent({
   components: {Comments},
-  props: ["name"],
+  props: ["posts"],
   setup(props)
   {
     const DATE = ref<Date>();
@@ -89,7 +89,7 @@ export default defineComponent({
     const strdate = ref<string>();
     const titleInput = ref<string>("");
     const userData = ref<string>();
-    post.value =JSON.parse(props.name)
+    post.value =JSON.parse(props.posts)
     console.log(post.value)
     userData.value = route.params.index.toString() 
 
@@ -204,6 +204,7 @@ export default defineComponent({
     const removePost = (index:number) =>
     {
       post.value.splice(index,1)
+      router.push({name: 'Home', params:{post: JSON.stringify(post.value)}})
     }
 
     const toggleModal = () =>

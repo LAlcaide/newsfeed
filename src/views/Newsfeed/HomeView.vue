@@ -62,7 +62,7 @@ import { watch } from 'vue';
 export default defineComponent({
   name: 'HomeView',
   components: {PostsList},
-  props: ["poster"],
+  props: ["post"],
   setup(props) {
 
     const route = useRoute()
@@ -70,7 +70,6 @@ export default defineComponent({
     const DATE = ref<Date>();
     const edit = ref(false);
     const editindex = ref<number>(0);
-    const emptycomment = ref<boolean>(false)
     const errorpost = ref<boolean[]>([false, false, false])
     const messageInput = ref<string>("");
     const nameInput = ref<string>("");
@@ -81,7 +80,7 @@ export default defineComponent({
     const titleInput = ref<string>("");
        try
       {
-        posts.value = JSON.parse(props.poster)
+        posts.value = JSON.parse(props.post)
         console.log(posts.value)
       }
       catch(err)
