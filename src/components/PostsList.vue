@@ -20,7 +20,12 @@
           </div>
           <div class="u-list-control"></div>
         </div><!--/blog-->
-        <Comments v-if="post.showcoms == 1" :comments="post.comments" :index="index" @add-comment="addComments" @remove-comment="removeComments" @edit-comment="editComments"/>
+        <Comments v-if="post.showcoms == 1" 
+        :comments="post.comments" 
+        :index="index" 
+        @add-comment="addComments" 
+        @remove-comment="removeComments"
+        @edit-comment="editComments"/>
       </div>
     </section>
 </template>
@@ -64,9 +69,6 @@ export default defineComponent({
         }
         const editComments = (index: number, editcomindex: number, commentEdit: string) => {
           emit("edit-comments", index, editcomindex, commentEdit)
-        }
-        const showPost = (index: number, editcomindex: number, commentEdit: string) => {
-          emit("show-post", index, editcomindex, commentEdit)
         }
         return{heartClicked, removePost, editPost, showComments, addComments, removeComments, editComments, shareData}
     }

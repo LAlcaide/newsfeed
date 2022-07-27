@@ -19,7 +19,7 @@
             </div>
           </form>
           <div v-if="errorpost"><br><br><br><div class="u-form-send-error u-form-send-message"> Unable to publish your post. Please fix errors then try again. </div></div>
-          <div v-if="nochanges"><br><br><br><div class="u-form-send-error u-form-send-message"> No changes detected. Please make some changes to publish. </div></div>
+          <div v-if="nochanges"><div class="u-form-send-error u-form-send-message"> No changes detected. Please make some changes to publish. </div></div>
         </div>
       </div><button @click="toggleModal" class="u-dialog-close-button u-icon u-text-grey-50 u-icon-1">
       <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 413.348 413.348" style=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#svg-1ce9"></use></svg>
@@ -67,15 +67,17 @@ export default defineComponent({
                 nochanges.value = false
               }
             }
+            errorpost.value = false
             let forms = document.querySelectorAll('.has-validation')
             Array.prototype.slice.call(forms).forEach(function(form:any) {
                 form.classList.remove("has-error")
                 if(form.value.trim() == '' || nochanges.value)
                 {
                     form.classList.add("has-error")
+                    errorpost.value = true
                 }
             })
-            if(nameInputs.trim() != '' && titleInputs.trim() != '' && messageInputs.trim() != '' && !nochanges.value)
+            if(!errorpost.value && !nochanges.value)
             {
                 emit("publish-post", nameInputs, titleInputs, messageInputs)
                 nameInput.value = ""
