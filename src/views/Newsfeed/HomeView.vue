@@ -9,37 +9,14 @@
       </p>
     </div>
   </section>
-  <section v-if="showModal" class="u-align-center u-black u-clearfix u-container-style u-dialog-block u-opacity u-opacity-70 u-valign-middle u-dialog-section-7" id="sec-61c6">
-    <div class="u-align-left u-border-2 u-border-grey-75 u-container-style u-dialog u-radius-5 u-shape-round u-white u-dialog-1">
-      <div class="u-container-layout u-valign-middle u-container-layout-1">
-        <div class="u-form u-form-1">
-          <form action="#" autocomplete="off" method="POST" class="u-clearfix u-form-spacing-19 u-form-vertical u-inner-form" style="padding: 0px;" source="email" name="form">
-            <div class="u-form-group u-form-name u-form-group-1">
-              <input v-if="!errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
-              <input v-if="errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
-            </div>
-            <div class="u-form-group u-form-group-2">
-              <input v-if="!errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
-              <input  v-if="errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
-            </div>
-            <div class="u-form-group u-form-message u-form-group-3">
-              <textarea v-if="!errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5"></textarea>
-              <textarea  v-if="errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;"></textarea>
-            </div>
-            <div class="u-align-center u-form-group u-form-submit u-form-group-4">
-              <p @click="publishPost" class="u-btn u-btn-submit u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1">Publish<br>
-              </p>
-            </div>
-          </form>
-          <div v-if="errorpost[0] || errorpost[1] || errorpost[2]"><br><br><br><div class="u-form-send-error u-form-send-message"> Unable to publish your post. Please fix errors then try again. </div></div>
-          <div v-if="nochanges"><br><br><br><div class="u-form-send-error u-form-send-message"> No changes detected. Please make some changes to publish. </div></div>
-        </div>
-      </div><button @click="toggleModal" class="u-dialog-close-button u-icon u-text-grey-50 u-icon-1">
-      <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 413.348 413.348" style=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#svg-1ce9"></use></svg>
-      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" xml:space="preserve" class="u-svg-content" viewBox="0 0 413.348 413.348" id="svg-1ce9"><path d="m413.348 24.354-24.354-24.354-182.32 182.32-182.32-182.32-24.354 24.354 182.32 182.32-182.32 182.32 24.354 24.354 182.32-182.32 182.32 182.32 24.354-24.354-182.32-182.32z"></path></svg>
-      </button>
-    </div>
-  </section> 
+  <Modal
+    :showModal="showModal"
+    :nameInput="nameInput"
+    :titleInput="titleInput"
+    :messageInput="messageInput"
+    :edit="edit"
+    @publish-post="publishPost"
+    @toggle-modal="toggleModal"/>
   <PostsList 
     :posts ="posts" 
     @heart-clicked="heartClicked" 
@@ -52,28 +29,23 @@
 </body>
 </template>
 <script lang="ts">
-import { ref } from '@vue/reactivity';
+import { ref } from 'vue';
 import { defineComponent } from '@vue/runtime-core';
 import Posts from '@/types/Posts'
 import PostsList from '@/components/PostsList.vue'
-import { useRoute, useRouter } from 'vue-router';
-import { watch } from 'vue';
+import Modal from '@/components/Modal.vue';
 
 export default defineComponent({
   name: 'HomeView',
-  components: {PostsList},
+  components: {PostsList, Modal},
   props: ["post"],
   setup(props) {
 
-    const route = useRoute()
-    const router = useRouter()
     const DATE = ref<Date>();
     const edit = ref(false);
     const editindex = ref<number>(0);
-    const errorpost = ref<boolean[]>([false, false, false])
     const messageInput = ref<string>("");
     const nameInput = ref<string>("");
-    const nochanges = ref<boolean>(false)
     const posts = ref<Posts[]>([])
     const showModal = ref(false);
     const strdate = ref<string>();
@@ -81,11 +53,10 @@ export default defineComponent({
        try
       {
         posts.value = JSON.parse(props.post)
-        console.log(posts.value)
       }
       catch(err)
       {
-        console.log(err)
+        console.log("no data available")
       }
     const addComments = (index:number, commentInput: string) =>
     {
@@ -121,47 +92,8 @@ export default defineComponent({
       }
     }
 
-     const publishPost = () =>
+     const publishPost = (nameInput: string, titleInput: string, messageInput: string) =>
     {
-      if(nameInput.value.trim() == '')
-      {
-        errorpost.value[0] = true
-      }
-      else
-      {
-        errorpost.value[0] = false
-      }
-      if(titleInput.value.trim() == '')
-      {
-        errorpost.value[1] = true
-      }
-      else
-      {
-        errorpost.value[1] = false
-      }
-      if(messageInput.value.trim() == '')
-      {
-        errorpost.value[2] = true
-      }
-      else
-      {
-        errorpost.value[2] = false
-      }
-      if(edit.value)
-      {
-        if(nameInput.value == posts.value[editindex.value].author && 
-        titleInput.value == posts.value[editindex.value].title && 
-        messageInput.value == posts.value[editindex.value].message)
-        {
-          nochanges.value = true
-        }
-        else
-        {
-          nochanges.value = false
-        }
-      }
-      if(nameInput.value.trim() != '' && titleInput.value.trim() != '' && messageInput.value.trim() != '' && !nochanges.value)
-      {
         DATE.value = new Date()
         strdate.value = DATE.value.toDateString()
         if(DATE.value.getHours() >= 12)
@@ -177,9 +109,9 @@ export default defineComponent({
           "AM"
         }
         posts.value.unshift({
-        author: nameInput.value,
-        title: titleInput.value,
-        message: messageInput.value,
+        author: nameInput,
+        title: titleInput,
+        message: messageInput,
         heart: 0,
         liked: 0,
         date: strdate.value,
@@ -196,7 +128,6 @@ export default defineComponent({
         }
         showModal.value = !showModal.value
         edit.value = false
-      }
     }
 
     const removeComments = (index:number, comindex: number) =>
@@ -224,19 +155,12 @@ export default defineComponent({
     const toggleModal = () =>
     {
       showModal.value = !showModal.value;
-      nameInput.value = ""
-      titleInput.value = ""
-      messageInput.value = ""
-      errorpost.value[0] = false
-      errorpost.value[1] = false
-      errorpost.value[2] = false
-      nochanges.value = false
+      edit.value = false
     }
 
     return{posts, toggleModal, showModal, publishPost, nameInput, 
     titleInput,messageInput, heartClicked, removePost, editPost, 
-    edit, showComments, addComments, removeComments, editComments, 
-    errorpost, nochanges}
+    edit, showComments, addComments, removeComments, editComments}
   }
 })
 </script>

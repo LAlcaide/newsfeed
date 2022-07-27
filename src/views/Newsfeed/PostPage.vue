@@ -7,37 +7,14 @@
       </p>
     </div>
   </section>
-  <section v-if="showModal" class="u-align-center u-black u-clearfix u-container-style u-dialog-block u-opacity u-opacity-70 u-valign-middle u-dialog-section-7" id="sec-61c6">
-      <div class="u-align-left u-border-2 u-border-grey-75 u-container-style u-dialog u-radius-5 u-shape-round u-white u-dialog-1">
-        <div class="u-container-layout u-valign-middle u-container-layout-1">
-          <div class="u-form u-form-1">
-            <form action="#" autocomplete="off" method="POST" class="u-clearfix u-form-spacing-19 u-form-vertical u-inner-form" style="padding: 0px;" source="email" name="form">
-              <div class="u-form-group u-form-name u-form-group-1">
-                <input v-if="!errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
-                <input v-if="errorpost[0]" type="text" v-model="nameInput" placeholder="Enter your Name" id="name-3e72" name="name" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
-              </div>
-              <div class="u-form-group u-form-group-2">
-                <input v-if="!errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5">
-                <input  v-if="errorpost[1]" type="text" v-model="titleInput" placeholder="Enter Title" id="message-3e72" name="title" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;">
-              </div>
-              <div class="u-form-group u-form-message u-form-group-3">
-                <textarea v-if="!errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5"></textarea>
-                <textarea  v-if="errorpost[2]" placeholder="Enter your message" v-model="messageInput" rows="4" cols="50" id="message-3e72" name="message" class="u-border-2 u-border-grey-25 u-input u-input-rectangle u-radius-5" style="border-color: red;"></textarea>
-              </div>
-              <div class="u-align-center u-form-group u-form-submit u-form-group-4">
-                <p @click="publishPost" class="u-btn u-btn-submit u-button-style u-hover-palette-1-dark-1 u-palette-1-base u-btn-1">Publish<br>
-                </p>
-              </div>
-            </form>
-            <div v-if="errorpost[0] || errorpost[1] || errorpost[2]"><br><br><br><div class="u-form-send-error u-form-send-message"> Unable to publish your post. Please fix errors then try again. </div></div>
-            <div v-if="nochanges"><br><br><br><div class="u-form-send-error u-form-send-message"> No changes detected. Please make some changes to publish. </div></div>
-          </div>
-        </div><button @click="toggleModal" class="u-dialog-close-button u-icon u-text-grey-50 u-icon-1">
-        <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 413.348 413.348" style=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#svg-1ce9"></use></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" xml:space="preserve" class="u-svg-content" viewBox="0 0 413.348 413.348" id="svg-1ce9"><path d="m413.348 24.354-24.354-24.354-182.32 182.32-182.32-182.32-24.354 24.354 182.32 182.32-182.32 182.32 24.354 24.354 182.32-182.32 182.32 182.32 24.354-24.354-182.32-182.32z"></path></svg>
-      </button>
-      </div>
-    </section> 
+  <Modal
+    :showModal="showModal"
+    :nameInput="nameInput"
+    :titleInput="titleInput"
+    :messageInput="messageInput"
+    :edit="edit"
+    @publish-post="publishPost"
+    @toggle-modal="toggleModal"/>
 <div v-for="(postt, postindex) in post" :key="postindex">
 <section class="u-align-center u-clearfix u-section-2" v-if="postindex.toString() == userData">
       <div  class="u-clearfix u-sheet u-valign-middle u-sheet-1"><!--blog--><!--blog_options_json--><!--{"type":"Recent","source":"","tags":"","count":""}--><!--/blog_options_json-->
@@ -71,17 +48,18 @@ import { defineComponent, PropType, ref, onMounted} from 'vue'
 import Posts from '@/types/Posts';
 import Comments from '@/components/Comments.vue';
 import { useRoute, useRouter } from 'vue-router';
+import Modal from '@/components/Modal.vue';
 export default defineComponent({
-  components: {Comments},
+  components: {Comments, Modal},
   props: ["posts"],
   setup(props)
   {
+    
+    const edit = ref(false);
     const DATE = ref<Date>();
     const editindex = ref<number>(0);
-    const errorpost = ref<boolean[]>([false, false, false])
     const messageInput = ref<string>("");
     const nameInput = ref<string>("");
-    const nochanges = ref<boolean>(false)
     const post = ref<Posts[]>([]);
     const route = useRoute()
     const router = useRouter()
@@ -90,7 +68,7 @@ export default defineComponent({
     const titleInput = ref<string>("");
     const userData = ref<string>();
     post.value =JSON.parse(props.posts)
-    console.log(post.value)
+
     userData.value = route.params.index.toString() 
 
     const addComments = (index:number, commentInput: string) =>
@@ -109,7 +87,8 @@ export default defineComponent({
       nameInput.value = post.value[index].author
       titleInput.value = post.value[index].title
       messageInput.value = post.value[index].message
-      editindex.value = index
+      editindex.value - index
+      edit.value = true
     }
 
     const heartClicked = (index: number) =>
@@ -126,44 +105,8 @@ export default defineComponent({
       }
     }
 
-    const publishPost = () =>
-    {
-      if(nameInput.value.trim() == '')
-      {
-        errorpost.value[0] = true
-      }
-      else
-      {
-        errorpost.value[0] = false
-      }
-      if(titleInput.value.trim() == '')
-      {
-        errorpost.value[1] = true
-      }
-      else
-      {
-        errorpost.value[1] = false
-      }
-      if(messageInput.value.trim() == '')
-      {
-        errorpost.value[2] = true
-      }
-      else
-      {
-        errorpost.value[2] = false
-      }
-       if(nameInput.value == post.value[editindex.value].author && 
-        titleInput.value == post.value[editindex.value].title && 
-        messageInput.value == post.value[editindex.value].message)
-        {
-          nochanges.value = true
-        }
-        else
-        {
-          nochanges.value = false
-        }
-      if(nameInput.value.trim() != '' && titleInput.value.trim() != '' && messageInput.value.trim() != '' && !nochanges.value)
-      {
+    const publishPost = (nameInput: string, titleInput: string, messageInput: string, nochanges: boolean) =>
+    { 
          DATE.value = new Date()
         strdate.value = DATE.value.toDateString()
         if(DATE.value.getHours() >= 12)
@@ -177,9 +120,9 @@ export default defineComponent({
           DATE.value.getMinutes() + ":" + DATE.value.getSeconds() + " " + "AM"
         }
         post.value.unshift({
-          author: nameInput.value,
-          title: titleInput.value,
-          message: messageInput.value,
+          author: nameInput,
+          title: titleInput,
+          message: messageInput,
           heart: 0,
           liked: 0,
           date: strdate.value,
@@ -193,7 +136,7 @@ export default defineComponent({
         post.value.splice(editindex.value+1, 1)
         showModal.value = !showModal.value;
         userData.value = '0'
-      }
+        edit.value = false
     }
 
     const removeComments = (index:number, comindex: number) =>
@@ -210,14 +153,11 @@ export default defineComponent({
     const toggleModal = () =>
     {
       showModal.value = !showModal.value;
-      nameInput.value = ""
-      titleInput.value = ""
-      messageInput.value = ""
+      edit.value = false
     }
     return{post, showModal, publishPost, nameInput, titleInput,
     messageInput, heartClicked, removePost, editPost, addComments, 
-    removeComments, editComments, toggleModal, userData, errorpost, 
-    nochanges}
+    removeComments, editComments, toggleModal, userData, edit}
   }
 })
 </script>
